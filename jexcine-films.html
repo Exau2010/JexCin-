@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jex-Ciné — Films</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080d;--bg2:#0d0e17;--bg3:#111220;
+  --surface:rgba(255,255,255,0.04);--surface2:rgba(255,255,255,0.07);--surface3:rgba(255,255,255,0.1);
+  --border:rgba(255,255,255,0.07);--border2:rgba(138,92,246,0.3);
+  --purple:#8a5cf6;--purple2:#6d3fd6;--purple-light:#a87fff;
+  --purple-glow:rgba(138,92,246,0.35);--purple-soft:rgba(138,92,246,0.12);
+  --text:#f0f0f8;--text2:#9898b0;--text3:#5c5c78;--white:#ffffff;
+  --gold:#f5c518;--green:#22c55e;--red:#ef4444;
+  --nav-h:70px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100dvh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");background-size:180px;pointer-events:none;}
+
+/* ── TOP NAV ── */
+.topnav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  background:rgba(7,8,13,0.85);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
+.nav-logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),#5b21d6);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px var(--purple-glow);}
+.nav-logo-icon svg{width:16px;height:16px;fill:white;}
+.nav-logo-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--white);}
+.nav-logo-name span{color:var(--purple);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple2));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;cursor:pointer;border:2px solid var(--border2);}
+
+/* ── MAIN CONTENT ── */
+.main{padding:72px 0 90px;min-height:100dvh;}
+.section{padding:0 16px;margin-bottom:32px;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--white);}
+.see-all{font-size:13px;color:var(--purple);text-decoration:none;font-weight:500;}
+.see-all:hover{color:var(--purple-light);}
+
+/* ── SEARCH ── */
+.search-wrap{padding:12px 16px;position:sticky;top:60px;z-index:40;background:rgba(7,8,13,0.9);backdrop-filter:blur(12px);}
+.search-box{position:relative;}
+.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text3);}
+.search-icon svg{width:18px;height:18px;}
+.search-input{width:100%;padding:14px 16px 14px 46px;background:var(--surface2);border:1px solid var(--border);border-radius:16px;color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.search-input:focus{border-color:var(--border2);box-shadow:0 0 0 3px var(--purple-soft);}
+.search-input::placeholder{color:var(--text3);}
+.search-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:var(--surface3);border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;display:none;align-items:center;justify-content:center;color:var(--text2);}
+.search-clear.show{display:flex;}
+.search-clear svg{width:12px;height:12px;}
+
+/* ── CATEGORIES ── */
+.cats-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-ms-overflow-style:none;}
+.cats-scroll::-webkit-scrollbar{display:none;}
+.cat-pill{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.cat-pill:hover{border-color:var(--border2);color:var(--text);}
+.cat-pill.active{background:var(--purple-soft);border-color:var(--border2);color:var(--purple-light);font-weight:600;}
+
+/* ── HERO SCROLL (featured) ── */
+.hero-scroll{display:flex;gap:14px;overflow-x:auto;padding:0 16px 8px;scrollbar-width:none;-ms-overflow-style:none;}
+.hero-scroll::-webkit-scrollbar{display:none;}
+.hero-card{flex-shrink:0;width:180px;border-radius:18px;overflow:hidden;position:relative;cursor:pointer;transition:transform 0.3s,box-shadow 0.3s;}
+.hero-card:hover{transform:scale(1.03);box-shadow:0 16px 40px rgba(0,0,0,0.7);}
+.hero-card img{width:100%;height:270px;object-fit:cover;display:block;}
+.hero-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(7,8,13,0.95) 0%,rgba(7,8,13,0.3) 45%,transparent 70%);}
+.hero-card-info{position:absolute;bottom:0;left:0;right:0;padding:14px;}
+.hero-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--white);margin-bottom:5px;line-height:1.2;}
+.hero-card-meta{display:flex;align-items:center;gap:6px;}
+.hero-rating{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gold);font-weight:600;}
+.hero-year{font-size:11px;color:var(--text2);}
+.hero-fav{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:rgba(7,8,13,0.6);backdrop-filter:blur(8px);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;}
+.hero-fav:hover{background:rgba(138,92,246,0.2);border-color:var(--border2);}
+.hero-fav svg{width:14px;height:14px;}
+.hero-fav.faved{color:var(--red);}
+
+/* ── SKELETON ── */
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:12px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-hero{flex-shrink:0;width:180px;height:270px;border-radius:18px;}
+.skel-list{height:100px;border-radius:14px;margin-bottom:12px;}
+
+/* ── LIST CARDS (search results) ── */
+.list-card{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;cursor:pointer;transition:all 0.25s;margin-bottom:12px;position:relative;}
+.list-card:hover{background:var(--surface2);border-color:var(--border2);transform:translateX(2px);}
+.list-thumb{width:72px;height:106px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--surface2);}
+.list-thumb.skel-thumb{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+.list-body{flex:1;min-width:0;}
+.list-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--white);margin-bottom:5px;line-height:1.2;}
+.list-meta{font-size:12px;color:var(--text2);margin-bottom:7px;}
+.list-plot{font-size:12px;color:var(--text3);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.list-dl{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.dl-btn{width:40px;height:40px;border-radius:50%;border:2px solid var(--purple);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;color:var(--purple);}
+.dl-btn:hover{background:var(--purple-soft);box-shadow:0 0 16px var(--purple-glow);}
+.dl-btn svg{width:18px;height:18px;}
+.dl-label{font-size:10px;color:var(--text3);}
+
+/* ── BOTTOM NAV ── */
+.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:50;height:var(--nav-h);background:rgba(10,10,20,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding:0 8px;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;cursor:pointer;position:relative;transition:color 0.2s;}
+.nav-item svg{width:22px;height:22px;transition:all 0.2s;}
+.nav-item span{font-size:10px;font-weight:500;transition:color 0.2s;}
+.nav-item.active{color:var(--purple);}
+.nav-item.active svg{filter:drop-shadow(0 0 8px var(--purple-glow));}
+.nav-item:not(.active){color:var(--text3);}
+.nav-item:hover:not(.active){color:var(--text2);}
+
+/* ── DETAIL PANEL ── */
+.detail-overlay{position:fixed;inset:0;z-index:80;background:rgba(7,8,13,0.92);backdrop-filter:blur(16px);opacity:0;pointer-events:none;transition:opacity 0.35s;}
+.detail-overlay.open{opacity:1;pointer-events:all;}
+.detail-panel{position:absolute;bottom:0;left:0;right:0;max-height:92dvh;background:var(--bg3);border-top-left-radius:28px;border-top-right-radius:28px;border:1px solid var(--border);overflow-y:auto;transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.34,1.2,0.64,1);}
+.detail-overlay.open .detail-panel{transform:translateY(0);}
+.detail-handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:16px auto 0;}
+.detail-hero{position:relative;height:220px;overflow:hidden;}
+.detail-hero img{width:100%;height:100%;object-fit:cover;display:block;}
+.detail-hero-fade{position:absolute;inset:0;background:linear-gradient(to top,var(--bg3) 0%,transparent 60%);}
+.detail-body{padding:0 20px 100px;}
+.detail-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;}
+.badge-genre{background:var(--purple-soft);border-color:var(--border2);color:var(--purple-light);}
+.badge-year{background:var(--surface2);border-color:var(--border);color:var(--text2);}
+.badge-rating{background:rgba(245,197,24,0.1);border-color:rgba(245,197,24,0.25);color:var(--gold);}
+.detail-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--white);margin-bottom:6px;line-height:1.2;}
+.detail-meta{font-size:13px;color:var(--text2);margin-bottom:16px;}
+.detail-plot{font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:24px;}
+.detail-actions{display:flex;gap:12px;}
+.action-btn{flex:1;padding:16px;border-radius:14px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:8px;border:none;}
+.action-primary{background:linear-gradient(135deg,var(--purple),var(--purple2));color:white;box-shadow:0 4px 20px var(--purple-glow);}
+.action-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--purple-glow);}
+.action-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.action-secondary:hover{border-color:var(--border2);background:var(--surface3);}
+.action-btn svg{width:18px;height:18px;}
+
+/* ── DOWNLOAD TOAST ── */
+.dl-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:12px 20px;font-size:14px;color:var(--text);display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:all 0.35s;z-index:200;white-space:nowrap;}
+.dl-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.dl-toast-icon{color:var(--purple);}
+
+/* ── EMPTY / NO RESULTS ── */
+.empty-state{text-align:center;padding:48px 24px;color:var(--text3);}
+.empty-state svg{width:48px;height:48px;margin-bottom:12px;opacity:0.4;}
+.empty-state p{font-size:15px;}
+
+/* ── FAV PAGE ── */
+.fav-empty{text-align:center;padding:80px 24px;color:var(--text3);}
+.fav-empty svg{width:56px;height:56px;margin-bottom:16px;opacity:0.3;}
+.fav-empty p{font-size:16px;line-height:1.6;}
+
+/* ── TABS (pages) ── */
+.tab-page{display:none;}
+.tab-page.active{display:block;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeIn 0.4s ease both;}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-icon"><svg viewBox="0 0 24 24"><path d="M8 5.14v14l11-7-11-7z"/></svg></div>
+    <div class="nav-logo-name">Jex-<span>Ciné</span></div>
+  </a>
+  <div class="nav-right">
+    <div class="nav-avatar" id="navAvatar">?</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HOME TAB -->
+  <div class="tab-page active" id="tab-home">
+    <!-- Search -->
+    <div class="search-wrap">
+      <div class="search-box">
+        <div class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+        <input class="search-input" id="searchInput" placeholder="Rechercher un film, une série..." oninput="onSearch(this.value)">
+        <button class="search-clear" id="searchClear" onclick="clearSearch()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search Results (hidden by default) -->
+    <div id="searchResults" style="display:none;padding:0 16px;">
+      <div class="section-header" style="margin-bottom:12px;">
+        <p class="section-title" id="searchLabel">Résultats pour <span style="color:var(--purple)"></span></p>
+      </div>
+      <div id="searchList"></div>
+    </div>
+
+    <!-- Home content (visible when no search) -->
+    <div id="homeContent">
+      <!-- Categories -->
+      <div style="margin-bottom:24px;padding-top:8px;">
+        <div class="cats-scroll" id="catScroll"></div>
+      </div>
+
+      <!-- À la une -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">À la une</span>
+          <a class="see-all" href="#">Voir tout</a>
+        </div>
+      </div>
+      <div class="hero-scroll" id="featuredRow"></div>
+
+      <!-- Tendances -->
+      <div class="section" style="margin-top:28px;">
+        <div class="section-header">
+          <span class="section-title">Tendances</span>
+          <a class="see-all" href="#">Voir tout</a>
+        </div>
+        <div id="trendingList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES TAB -->
+  <div class="tab-page" id="tab-cats">
+    <div style="padding:16px;">
+      <h2 class="section-title" style="margin-bottom:20px;">Catégories</h2>
+      <div id="catGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"></div>
+    </div>
+  </div>
+
+  <!-- SEARCH TAB -->
+  <div class="tab-page" id="tab-search">
+    <div style="padding:16px;">
+      <h2 class="section-title" style="margin-bottom:16px;">Recherche avancée</h2>
+      <div class="search-box" style="margin-bottom:16px;">
+        <div class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+        <input class="search-input" id="searchInput2" placeholder="Titre, acteur, réalisateur..." oninput="onSearch2(this.value)">
+        <button class="search-clear show" onclick="document.getElementById('searchInput2').value='';document.getElementById('searchList2').innerHTML='';" style="display:flex;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="searchList2"></div>
+    </div>
+  </div>
+
+  <!-- DOWNLOADS TAB -->
+  <div class="tab-page" id="tab-dl">
+    <div style="padding:16px;">
+      <h2 class="section-title" style="margin-bottom:20px;">Téléchargements</h2>
+      <div id="dlList"></div>
+    </div>
+  </div>
+
+  <!-- FAVORITES TAB -->
+  <div class="tab-page" id="tab-fav">
+    <div style="padding:16px;">
+      <h2 class="section-title" style="margin-bottom:20px;">Mes Favoris</h2>
+      <div id="favList"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottomnav">
+  <div class="nav-item active" onclick="switchTab('home',this)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>Accueil</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('cats',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span>Catégories</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('search',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <span>Rechercher</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('dl',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span>Téléchargements</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('fav',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <span>Favoris</span>
+  </div>
+</nav>
+
+<!-- DETAIL OVERLAY -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-handle"></div>
+    <div class="detail-hero"><img id="detailImg" src="" alt=""><div class="detail-hero-fade"></div></div>
+    <div class="detail-body">
+      <div class="detail-badges" id="detailBadges"></div>
+      <h2 class="detail-title" id="detailTitle"></h2>
+      <p class="detail-meta" id="detailMeta"></p>
+      <p class="detail-plot" id="detailPlot"></p>
+      <div class="detail-actions">
+        <button class="action-btn action-primary" onclick="downloadCurrent()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Télécharger
+        </button>
+        <button class="action-btn action-secondary" id="detailFavBtn" onclick="toggleFavCurrent()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="detailFavIcon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Favoris
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DOWNLOAD TOAST -->
+<div class="dl-toast" id="dlToast">
+  <span class="dl-toast-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+  <span id="dlToastText">Ajouté aux téléchargements</span>
+</div>
+
+<script>
+const OMDB = 'b44b0c5a';
+
+// ── JSONP (no CORS issues, works file:// and hosted) ──
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = 'jxcb_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cb;
+    window[cb] = function(data) { delete window[cb]; s.remove(); resolve(data); };
+    s.onerror = function() { delete window[cb]; s.remove(); reject(new Error('JSONP error')); };
+    document.head.appendChild(s);
+  });
+}
+
+async function fetchMovie(title) {
+  try {
+    const d = await jsonp('https://www.omdbapi.com/?t=' + encodeURIComponent(title) + '&plot=full&apikey=' + OMDB);
+    return d.Response === 'True' ? d : null;
+  } catch(e) { return null; }
+}
+
+async function searchMovies(query) {
+  try {
+    const d = await jsonp('https://www.omdbapi.com/?s=' + encodeURIComponent(query) + '&type=movie&apikey=' + OMDB);
+    if (d.Response !== 'True' || !d.Search || !d.Search.length) return [];
+    const details = await Promise.all(d.Search.slice(0,8).map(function(m){ return fetchMovie(m.Title); }));
+    return details.filter(Boolean);
+  } catch(e) { return []; }
+}
+
+async function searchByGenre(genre) {
+  try {
+    const d = await jsonp('https://www.omdbapi.com/?s=' + encodeURIComponent(genre) + '&type=movie&apikey=' + OMDB);
+    return d.Response === 'True' ? d.Search : [];
+  } catch(e) { return []; }
+}
+
+// ── STATE ──
+let favs = JSON.parse(localStorage.getItem('jexcine_favs') || '[]');
+let downloads = JSON.parse(localStorage.getItem('jexcine_dls') || '[]');
+let currentMovie = null;
+let searchTimer = null;
+
+const CATEGORIES = [
+  { label:'Tous', query:'popular' },
+  { label:'Action', query:'action' },
+  { label:'Sci-Fi', query:'science fiction' },
+  { label:'Drame', query:'drama' },
+  { label:'Animation', query:'animation' },
+  { label:'Horreur', query:'horror' },
+  { label:'Comedie', query:'comedy' },
+  { label:'Thriller', query:'thriller' },
+];
+const FEATURED = ['Interstellar','The Dark Knight','Inception','Avengers Endgame','Dune','Oppenheimer','The Godfather'];
+const TRENDING = ['Gladiator','Parasite','1917','Joker','Tenet','Top Gun Maverick','John Wick'];
+const CAT_COLORS = ['#6d3fd6','#1e40af','#065f46','#92400e','#7c2d12','#1e3a5f','#4a1d96','#7f1d1d'];
+
+// ── INIT ──
+function init() {
+  const user = localStorage.getItem('jexcine_user');
+  if (!user) { window.location.href = 'jexcine-index.html'; return; }
+  document.getElementById('navAvatar').textContent = user[0].toUpperCase();
+  buildCatPills();
+  buildCatGrid();
+  loadFeatured();
+  loadTrending();
+  renderFavList();
+  renderDlList();
+}
+
+// ── TABS ──
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-page').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'fav') renderFavList();
+  if (name === 'dl') renderDlList();
+}
+
+// ── CATEGORIES ──
+function buildCatPills() {
+  const wrap = document.getElementById('catScroll');
+  CATEGORIES.forEach(function(c, i) {
+    const el = document.createElement('div');
+    el.className = 'cat-pill' + (i === 0 ? ' active' : '');
+    el.textContent = c.label;
+    el.onclick = function() {
+      document.querySelectorAll('.cat-pill').forEach(function(p){ p.classList.remove('active'); });
+      el.classList.add('active');
+      loadFeatured(c.query === 'popular' ? null : c.query);
+    };
+    wrap.appendChild(el);
+  });
+}
+
+function buildCatGrid() {
+  const grid = document.getElementById('catGrid');
+  CATEGORIES.slice(1).forEach(function(c, i) {
+    const card = document.createElement('div');
+    card.style.cssText = 'background:' + (CAT_COLORS[i]||'#6d3fd6') + '22;border:1px solid ' + (CAT_COLORS[i]||'#6d3fd6') + '44;border-radius:16px;padding:24px 16px;cursor:pointer;transition:all 0.2s;text-align:center;';
+    card.innerHTML = '<p style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;color:var(--white);">' + c.label + '</p>';
+    card.onmouseenter = function(){ card.style.transform = 'scale(1.03)'; };
+    card.onmouseleave = function(){ card.style.transform = ''; };
+    card.onclick = function() {
+      switchTab('home', document.querySelector('.nav-item'));
+      loadFeatured(c.query);
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ── FEATURED ──
+async function loadFeatured(genre) {
+  const row = document.getElementById('featuredRow');
+  row.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const s = document.createElement('div'); s.className = 'skeleton skel-hero'; row.appendChild(s);
+  }
+  let titles = FEATURED;
+  if (genre) {
+    const found = await searchByGenre(genre);
+    if (found.length) titles = found.map(function(m){ return m.Title; });
+  }
+  const results = await Promise.all(titles.slice(0,7).map(fetchMovie));
+  row.innerHTML = '';
+  results.forEach(function(m){ if (m) row.appendChild(makeHeroCard(m)); });
+}
+
+function makeHeroCard(m) {
+  const isFav = favs.some(function(f){ return f.imdbID === m.imdbID; });
+  const div = document.createElement('div');
+  div.className = 'hero-card anim-in';
+  const poster = (m.Poster && m.Poster !== 'N/A') ? m.Poster : '';
+  const rating = (m.imdbRating && m.imdbRating !== 'N/A') ? '<div class="hero-rating">\u2b50 ' + m.imdbRating + '</div>' : '';
+  div.innerHTML =
+    '<img src="' + poster + '" alt="' + m.Title + '" onerror="this.style.background=\'var(--surface2)\'">' +
+    '<div class="hero-card-overlay"></div>' +
+    '<div class="hero-card-info">' +
+      '<div class="hero-card-title">' + m.Title + '</div>' +
+      '<div class="hero-card-meta">' + rating + '<div class="hero-year">' + m.Year + '</div></div>' +
+    '</div>' +
+    '<div class="hero-fav' + (isFav ? ' faved' : '') + '" onclick="event.stopPropagation();toggleFav(this,\'' + m.imdbID + '\')">' +
+      '<svg viewBox="0 0 24 24" fill="' + (isFav ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' +
+    '</div>';
+  div.onclick = function(){ openDetail(m); };
+  return div;
+}
+
+// ── TRENDING ──
+async function loadTrending() {
+  const list = document.getElementById('trendingList');
+  list.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const s = document.createElement('div'); s.className = 'skeleton skel-list'; list.appendChild(s);
+  }
+  const results = await Promise.all(TRENDING.slice(0,6).map(fetchMovie));
+  list.innerHTML = '';
+  results.forEach(function(m){ if (m) list.appendChild(makeListCard(m)); });
+}
+
+function makeListCard(m) {
+  const div = document.createElement('div');
+  div.className = 'list-card anim-in';
+  const poster = (m.Poster && m.Poster !== 'N/A') ? m.Poster : '';
+  const runtime = (m.Runtime && m.Runtime !== 'N/A') ? ' \u00b7 ' + m.Runtime : '';
+  const genre = (m.Genre && m.Genre !== 'N/A') ? ' \u00b7 ' + m.Genre.split(',')[0] : '';
+  const plot = (m.Plot && m.Plot !== 'N/A') ? m.Plot : '';
+  div.innerHTML =
+    '<img class="list-thumb" src="' + poster + '" alt="' + m.Title + '" onerror="this.style.background=\'var(--surface2)\'">' +
+    '<div class="list-body">' +
+      '<div class="list-title">' + m.Title + '</div>' +
+      '<div class="list-meta">' + m.Year + runtime + genre + '</div>' +
+      '<div class="list-plot">' + plot + '</div>' +
+    '</div>' +
+    '<div class="list-dl">' +
+      '<button class="dl-btn" onclick="event.stopPropagation();startDownload(this,\'' + m.imdbID + '\')" title="Telecharger">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+      '</button>' +
+      '<span class="dl-label">Telecharger</span>' +
+    '</div>';
+  div.onclick = function(){ openDetail(m); };
+  return div;
+}
+
+// ── SEARCH ──
+function onSearch(val) {
+  const results = document.getElementById('searchResults');
+  const home = document.getElementById('homeContent');
+  const clear = document.getElementById('searchClear');
+  clear.classList.toggle('show', val.length > 0);
+  if (!val.trim()) { results.style.display = 'none'; home.style.display = 'block'; return; }
+  results.style.display = 'block';
+  home.style.display = 'none';
+  document.getElementById('searchLabel').innerHTML = 'Resultats pour <span style="color:var(--purple)">"' + val + '"</span>';
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(function(){ doSearch(val, 'searchList'); }, 450);
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  onSearch('');
+}
+
+function onSearch2(val) {
+  clearTimeout(searchTimer);
+  if (!val.trim()) { document.getElementById('searchList2').innerHTML = ''; return; }
+  searchTimer = setTimeout(function(){ doSearch(val, 'searchList2'); }, 450);
+}
+
+async function doSearch(query, targetId) {
+  const list = document.getElementById(targetId);
+  list.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement('div'); s.className = 'skeleton skel-list'; list.appendChild(s);
+  }
+  const results = await searchMovies(query);
+  list.innerHTML = '';
+  if (!results.length) {
+    list.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>Aucun resultat trouve</p></div>';
+    return;
+  }
+  results.forEach(function(m){ list.appendChild(makeListCard(m)); });
+}
+
+// ── DETAIL ──
+function openDetail(m) {
+  currentMovie = m;
+  document.getElementById('detailImg').src = (m.Poster && m.Poster !== 'N/A') ? m.Poster : '';
+  document.getElementById('detailTitle').textContent = m.Title;
+  const dir = (m.Director && m.Director !== 'N/A') ? 'Real. ' + m.Director : '';
+  document.getElementById('detailMeta').textContent = [m.Year, m.Runtime, dir].filter(Boolean).join(' \u00b7 ');
+  document.getElementById('detailPlot').textContent = (m.Plot && m.Plot !== 'N/A') ? m.Plot : '';
+  const badges = document.getElementById('detailBadges');
+  badges.innerHTML = '';
+  if (m.imdbRating && m.imdbRating !== 'N/A') badges.innerHTML += '<span class="badge badge-rating">\u2b50 ' + m.imdbRating + '/10</span>';
+  if (m.Year) badges.innerHTML += '<span class="badge badge-year">' + m.Year + '</span>';
+  if (m.Genre && m.Genre !== 'N/A') {
+    m.Genre.split(',').slice(0,2).forEach(function(g){ badges.innerHTML += '<span class="badge badge-genre">' + g.trim() + '</span>'; });
+  }
+  const isFav = favs.some(function(f){ return f.imdbID === m.imdbID; });
+  const favIcon = document.getElementById('detailFavIcon');
+  favIcon.setAttribute('fill', isFav ? '#ef4444' : 'none');
+  favIcon.setAttribute('stroke', isFav ? '#ef4444' : 'currentColor');
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail(e) {
+  if (e.target === document.getElementById('detailOverlay')) {
+    document.getElementById('detailOverlay').classList.remove('open');
+  }
+}
+
+// ── FAVORITES ──
+function toggleFav(btn, id) {
+  const idx = favs.findIndex(function(f){ return f.imdbID === id; });
+  if (idx > -1) {
+    favs.splice(idx, 1);
+    btn.classList.remove('faved');
+    btn.querySelector('svg').setAttribute('fill','none');
+    showToast('Retire des favoris');
+  } else {
+    btn.classList.add('faved');
+    btn.querySelector('svg').setAttribute('fill','currentColor');
+    const titleEl = btn.closest('.hero-card') && btn.closest('.hero-card').querySelector('.hero-card-title');
+    const title = titleEl ? titleEl.textContent : '';
+    fetchMovie(title).then(function(m){ if (m){ favs.push(m); saveFavs(); } });
+    showToast('Ajoute aux favoris');
+    return;
+  }
+  saveFavs();
+}
+
+function toggleFavCurrent() {
+  if (!currentMovie) return;
+  const idx = favs.findIndex(function(f){ return f.imdbID === currentMovie.imdbID; });
+  const icon = document.getElementById('detailFavIcon');
+  if (idx > -1) {
+    favs.splice(idx, 1);
+    icon.setAttribute('fill','none'); icon.setAttribute('stroke','currentColor');
+    showToast('Retire des favoris');
+  } else {
+    favs.push(currentMovie);
+    icon.setAttribute('fill','#ef4444'); icon.setAttribute('stroke','#ef4444');
+    showToast('Ajoute aux favoris');
+  }
+  saveFavs(); renderFavList();
+}
+
+function saveFavs(){ localStorage.setItem('jexcine_favs', JSON.stringify(favs)); }
+
+function renderFavList() {
+  const list = document.getElementById('favList');
+  if (!favs.length) {
+    list.innerHTML = '<div class="fav-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><p>Vous n\'avez pas encore<br>de films favoris.</p></div>';
+    return;
+  }
+  list.innerHTML = '';
+  favs.forEach(function(m){ list.appendChild(makeListCard(m)); });
+}
+
+// ── DOWNLOADS ──
+function startDownload(btn, id) {
+  const already = downloads.some(function(d){ return d.imdbID === id; });
+  if (already) { showToast('Deja dans les telechargements'); return; }
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+  btn.style.borderColor = 'var(--green)'; btn.style.color = 'var(--green)';
+  setTimeout(function(){
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    btn.style.borderColor = ''; btn.style.color = '';
+  }, 2500);
+  const titleEl = btn.closest('.list-card') && btn.closest('.list-card').querySelector('.list-title');
+  const title = titleEl ? titleEl.textContent : '';
+  fetchMovie(title).then(function(m){
+    if (m){ downloads.push(m); localStorage.setItem('jexcine_dls', JSON.stringify(downloads)); renderDlList(); }
+  });
+  showToast('Telechargement demarre...');
+}
+
+function downloadCurrent() {
+  if (!currentMovie) return;
+  const already = downloads.some(function(d){ return d.imdbID === currentMovie.imdbID; });
+  if (!already){ downloads.push(currentMovie); localStorage.setItem('jexcine_dls', JSON.stringify(downloads)); }
+  showToast('"' + currentMovie.Title + '" ajoute aux telechargements');
+}
+
+function renderDlList() {
+  const list = document.getElementById('dlList');
+  if (!downloads.length) {
+    list.innerHTML = '<div class="fav-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><p>Aucun telechargement<br>pour l\'instant.</p></div>';
+    return;
+  }
+  list.innerHTML = '';
+  downloads.forEach(function(m){ list.appendChild(makeListCard(m)); });
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('dlToast');
+  document.getElementById('dlToastText').textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+init();
+</script>
+</body>
+</html>
